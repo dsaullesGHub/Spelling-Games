@@ -1,295 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Silent Letters Practice - Grade 7</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Spell Knight - Silent Letters Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Outfit', sans-serif; background: #0f172a; }
-  button { font-family: 'Outfit', sans-serif; }
-  button:hover { opacity: 0.9; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Outfit',sans-serif;background:#0f172a;overflow-x:hidden;}
+button{font-family:'Outfit',sans-serif;cursor:pointer;}
+button:hover{opacity:0.92;}
+button:active{transform:scale(0.97);}
+@keyframes twk{0%{opacity:0.1}100%{opacity:0.6}}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes pfly{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(0.3);opacity:0}}
+@keyframes midle{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes mshake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+@keyframes mhit{0%{transform:scale(1)}30%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes sanim{0%{opacity:0;transform:scale(0.5)}20%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.3)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes glow{0%,100%{text-shadow:0 0 10px rgba(251,191,36,0.3)}50%{text-shadow:0 0 25px rgba(251,191,36,0.7)}}
+@keyframes lpop{0%{transform:scale(0);opacity:0}15%{transform:scale(1.3);opacity:1}30%{transform:scale(1)}80%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect } = React;
+<script>
+const {useState,useEffect,useRef} = React;
 
-const WORDS = [
-  { word: "muscle", silent: "c", position: 3, related: "muscular", hint: "Think about the word that describes strength." },
-  { word: "bomb", silent: "b", position: 3, related: "bombard", hint: "Think about an attack with many explosions." },
-  { word: "sign", silent: "g", position: 2, related: "signal", hint: "Think about a light or flag that sends a message." },
-  { word: "column", silent: "n", position: 5, related: "columnist", hint: "Think about the person who writes for a newspaper." },
-  { word: "hymn", silent: "n", position: 3, related: "hymnal", hint: "Think about the book of songs in church." },
-  { word: "condemn", silent: "n", position: 6, related: "condemnation", hint: "Think about the act of declaring something wrong." },
-  { word: "malign", silent: "g", position: 4, related: "malignant", hint: "Think about a dangerous tumor." },
-  { word: "autumn", silent: "n", position: 5, related: "autumnal", hint: "Think about the adjective for fall colors." },
-  { word: "resign", silent: "g", position: 4, related: "resignation", hint: "Think about the letter you write when quitting." },
-  { word: "crumb", silent: "b", position: 4, related: "crumble", hint: "Think about a cookie falling apart." },
-  { word: "design", silent: "g", position: 4, related: "designate", hint: "Think about choosing someone for a role." },
-  { word: "solemn", silent: "n", position: 5, related: "solemnity", hint: "Think about the seriousness of a ceremony." },
-  { word: "doubt", silent: "b", position: 3, related: "dubious", hint: "Think about something that seems questionable." },
-  { word: "receipt", silent: "p", position: 4, related: "reception", hint: "Think about a welcome event or front desk." },
-  { word: "heir", silent: "h", position: 0, related: "hereditary", hint: "Think about traits passed down through families." },
-  { word: "assign", silent: "g", position: 4, related: "assignation", hint: "Think about a secret meeting arrangement." },
-  { word: "debt", silent: "b", position: 2, related: "debit", hint: "Think about money taken from your bank account." },
-  { word: "soften", silent: "t", position: 3, related: "soft", hint: "Think about the base adjective for something gentle." },
-  { word: "fasten", silent: "t", position: 3, related: "fast", hint: "Think about holding something tight and secure." },
-  { word: "hasten", silent: "t", position: 3, related: "haste", hint: "Think about doing something in a big hurry." },
+const LEVELS=[
+  {id:1,name:"The Whispering Woods",rank:"Apprentice",desc:"Common words with silent letters hiding in plain sight.",color:"#4ade80",
+    boss:{name:"Moss Troll",emoji:"\u{1F9CC}",hp:3,xp:40},
+    minions:[{name:"Twig Sprite",emoji:"\u{1F33F}",hp:1,xp:10},{name:"Bark Imp",emoji:"\u{1F342}",hp:1,xp:12}],
+    words:[
+      {word:"two",silent:"w",position:1,related:"twelve",hint:"Say 'twelve' slowly. Hear the W? It vanishes in 'two.'"},
+      {word:"moisten",silent:"t",position:4,related:"moist",hint:"The base word 'moist' has a clear T. Where did it go?"},
+      {word:"damn",silent:"n",position:3,related:"damnation",hint:"Add '-ation' and that final letter comes roaring back."},
+      {word:"nestle",silent:"t",position:3,related:"nest",hint:"To nestle is to settle into a nest. The T hides when you add '-le.'"},
+      {word:"cupboard",silent:"p",position:2,related:"cup",hint:"A cupboard held cups. Say 'cup' and hear the lost letter."},
+    ]},
+  {id:2,name:"The Forgotten Library",rank:"Squire",desc:"Words from history and ceremony with deeper silent letters.",color:"#a78bfa",
+    boss:{name:"Ink Wraith",emoji:"\u{1F47B}",hp:4,xp:50},
+    minions:[{name:"Dust Mote",emoji:"\u2728",hp:1,xp:14},{name:"Page Phantom",emoji:"\u{1F4DC}",hp:2,xp:18}],
+    words:[
+      {word:"christen",silent:"t",position:5,related:"Christ",hint:"The ceremony comes from 'Christ.' Say it and hear the hidden letter."},
+      {word:"reign",silent:"g",position:3,related:"regal",hint:"A king reigns from a regal throne. One word keeps the G; the other drops it."},
+      {word:"chasten",silent:"t",position:4,related:"chaste",hint:"To chasten someone is to make them pure, or chaste. Hear the difference?"},
+      {word:"handsome",silent:"d",position:3,related:"hand",hint:"Originally meant 'easy to hand-le.' Say 'hand' and hear what is lost."},
+      {word:"indict",silent:"c",position:4,related:"dictate",hint:"Both come from the Latin word for 'say.' In 'dictate' you hear every letter."},
+      {word:"corps",silent:"p",position:3,related:"corporal",hint:"A corps is a body of soldiers. A corporal leads them, and pronounces every letter."},
+    ]},
+  {id:3,name:"The Shadow Cathedral",rank:"Knight",desc:"Trickier words where silent letters lurk in unexpected places.",color:"#38bdf8",
+    boss:{name:"Gargoyle Scribe",emoji:"\u{1F5FF}",hp:5,xp:60},
+    minions:[{name:"Stone Bat",emoji:"\u{1F987}",hp:2,xp:18},{name:"Echo Shade",emoji:"\u{1F464}",hp:2,xp:22}],
+    words:[
+      {word:"apostle",silent:"t",position:4,related:"apostolic",hint:"The adjective form 'apostolic' brings the T back to life."},
+      {word:"benign",silent:"g",position:4,related:"benignity",hint:"A benign tumor is harmless. 'Benignity' reveals the hidden G."},
+      {word:"deign",silent:"g",position:3,related:"dignity",hint:"To deign means to lower your dignity. The G is only heard in one."},
+      {word:"balm",silent:"l",position:2,related:"balsam",hint:"Balm comes from balsam, a soothing plant resin. The L hides in the shorter word."},
+      {word:"wrestle",silent:"t",position:4,related:"wrest",hint:"To wrestle is to wrest something away. The T disappears when you add '-le.'"},
+    ]},
+  {id:4,name:"The Arcane Vault",rank:"Champion",desc:"Advanced vocabulary with silent letters from Latin and Greek roots.",color:"#f472b6",
+    boss:{name:"Cipher Golem",emoji:"\u{1F916}",hp:6,xp:70},
+    minions:[{name:"Rune Wisp",emoji:"\u{1F52E}",hp:2,xp:24},{name:"Glyph Specter",emoji:"\u{1F441}\uFE0F",hp:3,xp:28}],
+    words:[
+      {word:"phlegm",silent:"g",position:4,related:"phlegmatic",hint:"A calm person is phlegmatic. Say it and the G reappears."},
+      {word:"mortgage",silent:"t",position:3,related:"mortal",hint:"Mortgage literally meant 'death pledge.' 'Mortal' keeps the T alive."},
+      {word:"iamb",silent:"b",position:3,related:"iambic",hint:"Shakespeare wrote in iambic pentameter. The B hides in the shorter form."},
+      {word:"consign",silent:"g",position:5,related:"signatory",hint:"To consign means to sign something over. A signatory pronounces every letter."},
+      {word:"corpuscle",silent:"c",position:6,related:"corpuscular",hint:"A corpuscle is a tiny body (cell). 'Corpuscular' reveals the hidden C."},
+    ]},
+  {id:5,name:"The Silent King's Throne",rank:"Archmage",desc:"The hardest words in the realm. Only true Spell Knights survive.",color:"#fbbf24",
+    boss:{name:"The Silent King",emoji:"\u{1F451}",hp:7,xp:100,isBoss:true},
+    minions:[{name:"Void Knight",emoji:"\u2694\uFE0F",hp:3,xp:30},{name:"Phantom Scribe",emoji:"\u{1F58B}\uFE0F",hp:3,xp:32}],
+    words:[
+      {word:"paradigm",silent:"g",position:6,related:"paradigmatic",hint:"A paradigm is a model. 'Paradigmatic' is its adjective, and the G returns."},
+      {word:"diaphragm",silent:"g",position:7,related:"diaphragmatic",hint:"The muscle that helps you breathe. Add '-atic' and hear every letter."},
+      {word:"impugn",silent:"g",position:4,related:"pugnacious",hint:"To impugn is to attack with words. A pugnacious person loves to fight."},
+      {word:"epistle",silent:"t",position:4,related:"epistolary",hint:"An epistle is a letter. An epistolary novel is told through letters. Hear the T?"},
+      {word:"ensign",silent:"g",position:4,related:"signify",hint:"An ensign is a sign of rank. 'Signify' pronounces the G loud and clear."},
+    ]},
 ];
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function getBlank(e){const c=e.word.split("");c[e.position]="?";return c;}
+function genChoices(correct){const c="bcdfghjklmnpqrstvwxyz".split("").filter(x=>x!==correct);const p=shuffle(c).slice(0,3);p.push(correct);return shuffle(p);}
 
-function getWordWithBlank(entry) {
-  const chars = entry.word.split("");
-  chars[entry.position] = "_";
-  return chars.join("");
-}
+const SFX={_r:false,
+  async init(){if(this._r)return;try{if(typeof Tone!=="undefined"){await Tone.start();this._r=true;}}catch(e){}},
+  _s(note,type,dur,vol,delay){if(!this._r||typeof Tone==="undefined")return;type=type||"square";dur=dur||"8n";vol=vol||-12;delay=delay||0;setTimeout(function(){try{var s=new Tone.Synth({oscillator:{type:type},envelope:{attack:0.01,decay:0.15,sustain:0,release:0.1},volume:vol}).toDestination();s.triggerAttackRelease(note,dur);}catch(e){}},delay);},
+  attack(){this._s("C5");this._s("E5","square","8n",-12,80);},
+  combo(){var n=["C5","E5","G5","C6"];for(var i=0;i<n.length;i++)this._s(n[i],"triangle","16n",-10,i*60);},
+  wrong(){this._s("C3","sawtooth","8n",-14);},
+  victory(){var n=["C5","E5","G5","C6","E6"];for(var i=0;i<n.length;i++)this._s(n[i],"triangle","8n",-8,i*120);},
+  defeat(){var n=["E4","D4","C4","B3"];for(var i=0;i<n.length;i++)this._s(n[i],"sawtooth","4n",-14,i*200);},
+  levelUp(){var n=["G4","B4","D5","G5"];for(var i=0;i<n.length;i++)this._s(n[i],"square","8n",-12,i*100);},
+  boss(){var n=["C3","C3","G3","C3"];for(var i=0;i<n.length;i++)this._s(n[i],"sawtooth","8n",-10,i*200);},
+};
 
-function generateLetterChoices(correct) {
-  const consonants = "bcdfghjklmnpqrstvwxyz".split("");
-  const others = consonants.filter((c) => c !== correct);
-  const shuffled = shuffle(others).slice(0, 3);
-  shuffled.push(correct);
-  return shuffle(shuffled);
-}
+function Particles({particles}){return(
+  React.createElement("div",{style:{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden"}},
+    particles.map(function(p){return React.createElement("div",{key:p.id,style:{position:"absolute",left:p.x,top:p.y,fontSize:p.size||16,color:p.color||"#fbbf24",fontWeight:800,fontFamily:"'Space Mono',monospace",animation:"pfly "+(p.dur||1)+"s ease-out forwards",opacity:0.9,textShadow:"0 0 10px "+(p.color||"#fbbf24")}},p.text)})
+  )
+);}
 
-/* ─── Flashcard Mode ─── */
-function FlashcardMode({ words, onBack }) {
-  const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [known, setKnown] = useState(new Set());
-  const [learning, setLearning] = useState(new Set());
-
-  const card = words[index];
-  const total = words.length;
-
-  function next(markKnown) {
-    if (markKnown) setKnown((s) => new Set([...s, index]));
-    else setLearning((s) => new Set([...s, index]));
-    setFlipped(false);
-    setTimeout(() => setIndex((i) => (i + 1) % total), 200);
-  }
-
-  return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px" }}>
-      <div style={{ width: "100%", maxWidth: 560, marginBottom: 20 }}>
-        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 14 }}>
-          Back to Menu
-        </button>
-      </div>
-
-      <div style={{ width: "100%", maxWidth: 560, marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: "#94a3b8", fontSize: 13, fontFamily: "'Space Mono', monospace" }}>
-          <span>Card {index + 1} of {total}</span>
-          <span style={{ color: "#4ade80" }}>{known.size} known</span>
-        </div>
-        <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
-          <div style={{ height: "100%", width: ((known.size + learning.size) / total) * 100 + "%", background: "linear-gradient(90deg, #4ade80, #22d3ee)", borderRadius: 2, transition: "width 0.4s ease" }} />
-        </div>
-      </div>
-
-      <div onClick={() => setFlipped(!flipped)} style={{ width: "100%", maxWidth: 560, minHeight: 320, borderRadius: 20, cursor: "pointer", perspective: 1000, marginBottom: 24 }}>
-        <div style={{ width: "100%", minHeight: 320, position: "relative", transformStyle: "preserve-3d", transition: "transform 0.5s ease", transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
-          {/* Front */}
-          <div style={{ position: "absolute", width: "100%", minHeight: 320, backfaceVisibility: "hidden", background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, boxSizing: "border-box", boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-            <div style={{ fontSize: 13, color: "#64748b", textTransform: "uppercase", letterSpacing: 3, marginBottom: 16, fontFamily: "'Space Mono', monospace" }}>What letter is missing?</div>
-            <div style={{ fontSize: 56, fontWeight: 800, color: "#f8fafc", letterSpacing: 6, marginBottom: 20, fontFamily: "'Space Mono', monospace" }}>{getWordWithBlank(card)}</div>
-            <div style={{ fontSize: 15, color: "#94a3b8", marginBottom: 8 }}>Related word: <span style={{ color: "#38bdf8", fontWeight: 600 }}>{card.related}</span></div>
-            <div style={{ fontSize: 13, color: "#475569", marginTop: 24, fontStyle: "italic" }}>tap to reveal</div>
-          </div>
-          {/* Back */}
-          <div style={{ position: "absolute", width: "100%", minHeight: 320, backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "linear-gradient(145deg, #064e3b, #065f46)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, boxSizing: "border-box", boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-            <div style={{ fontSize: 13, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: 3, marginBottom: 16, fontFamily: "'Space Mono', monospace" }}>Answer</div>
-            <div style={{ fontSize: 56, fontWeight: 800, color: "#f8fafc", letterSpacing: 4, marginBottom: 8, fontFamily: "'Space Mono', monospace" }}>
-              {card.word.split("").map((ch, i) => (
-                <span key={i} style={{ color: i === card.position ? "#4ade80" : "#f8fafc", textDecoration: i === card.position ? "underline" : "none", textUnderlineOffset: 6 }}>{ch}</span>
-              ))}
-            </div>
-            <div style={{ fontSize: 18, color: "#a7f3d0", marginBottom: 12 }}>Silent letter: <span style={{ fontWeight: 700, fontSize: 22, fontFamily: "'Space Mono', monospace" }}>"{card.silent}"</span></div>
-            <div style={{ fontSize: 14, color: "#6ee7b7", textAlign: "center", maxWidth: 400, lineHeight: 1.6 }}>
-              {card.hint}<br />
-              <span style={{ color: "#a7f3d0" }}>You can hear the "{card.silent}" in </span>
-              <span style={{ fontWeight: 700, color: "#f8fafc" }}>"{card.related}"</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {flipped && (
-        <div style={{ display: "flex", gap: 16, width: "100%", maxWidth: 560 }}>
-          <button onClick={() => next(false)} style={{ flex: 1, padding: "16px 20px", borderRadius: 12, border: "1px solid rgba(251,146,60,0.3)", background: "rgba(251,146,60,0.1)", color: "#fb923c", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Still Learning</button>
-          <button onClick={() => next(true)} style={{ flex: 1, padding: "16px 20px", borderRadius: 12, border: "1px solid rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.1)", color: "#4ade80", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Got It</button>
-        </div>
-      )}
-    </div>
+function HPBar({current,max,color,label,height}){
+  height=height||14;
+  var pct=Math.max(0,(current/max)*100);
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:3,fontSize:11,fontFamily:"'Space Mono',monospace"}},
+      React.createElement("span",{style:{color:"#94a3b8"}},label),
+      React.createElement("span",{style:{color:color}},current+"/"+max)
+    ),
+    React.createElement("div",{style:{height:height,background:"rgba(0,0,0,0.4)",borderRadius:height/2,overflow:"hidden",border:"1px solid rgba(255,255,255,0.08)"}},
+      React.createElement("div",{style:{height:"100%",width:pct+"%",borderRadius:height/2,background:"linear-gradient(90deg,"+color+","+color+"88)",transition:"width 0.4s ease",boxShadow:"0 0 10px "+color+"44"}})
+    )
   );
 }
 
-/* ─── Quiz Mode ─── */
-function QuizMode({ words: originalWords, onBack }) {
-  const [words] = useState(() => shuffle(originalWords));
-  const [index, setIndex] = useState(0);
-  const [choices, setChoices] = useState(() => generateLetterChoices(originalWords[0].silent));
-  const [selected, setSelected] = useState(null);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [results, setResults] = useState([]);
-  const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
+function MonsterSprite({monster,shake,hit}){
+  return React.createElement("div",{style:{fontSize:monster.isBoss?96:72,textAlign:"center",lineHeight:1,animation:shake?"mshake 0.3s ease":hit?"mhit 0.4s ease":"midle 2s ease-in-out infinite",filter:hit?"brightness(3)":"none",transition:"filter 0.1s"}},monster.emoji);
+}
 
-  useEffect(() => {
-    if (index < words.length) setChoices(generateLetterChoices(words[index].silent));
-  }, [index, words]);
+function SlashEffect({show}){
+  if(!show)return null;
+  return React.createElement("div",{style:{position:"absolute",inset:0,pointerEvents:"none",display:"flex",alignItems:"center",justifyContent:"center",zIndex:10}},
+    React.createElement("svg",{width:"200",height:"200",viewBox:"0 0 200 200",style:{animation:"sanim 0.4s ease-out forwards"}},
+      React.createElement("line",{x1:"20",y1:"180",x2:"180",y2:"20",stroke:"#fbbf24",strokeWidth:"4",strokeLinecap:"round",style:{filter:"drop-shadow(0 0 8px #fbbf24)"}},
+        React.createElement("animate",{attributeName:"stroke-dasharray",from:"0 300",to:"300 0",dur:"0.3s",fill:"freeze"})
+      )
+    )
+  );
+}
 
-  const current = words[index];
-  const done = index >= words.length;
+function SpellKnight(){
+  var [screen,setScreen]=useState("title");
+  var [soundOn,setSoundOn]=useState(true);
+  var [unlockedLevels,setUnlockedLevels]=useState([1]);
+  var [selectedLevel,setSelectedLevel]=useState(null);
+  var [playerHP,setPlayerHP]=useState(5);
+  var [maxHP,setMaxHP]=useState(5);
+  var [xp,setXP]=useState(0);
+  var [level,setLevel]=useState(1);
+  var [xpToNext,setXpToNext]=useState(30);
+  var [totalStars,setTotalStars]=useState({});
+  var [wordQueue,setWordQueue]=useState([]);
+  var [wordIndex,setWordIndex]=useState(0);
+  var [currentMonster,setCurrentMonster]=useState(null);
+  var [monsterHP,setMonsterHP]=useState(1);
+  var [monsterMaxHP,setMonsterMaxHP]=useState(1);
+  var [choices,setChoices]=useState([]);
+  var [selected,setSelected]=useState(null);
+  var [showResult,setShowResult]=useState(false);
+  var [streak,setStreak]=useState(0);
+  var [bestStreak,setBestStreak]=useState(0);
+  var [roundCorrect,setRoundCorrect]=useState(0);
+  var [roundTotal,setRoundTotal]=useState(0);
+  var [missed,setMissed]=useState([]);
+  var [particles,setParticles]=useState([]);
+  var [shakeMonster,setShakeMonster]=useState(false);
+  var [hitMonster,setHitMonster]=useState(false);
+  var [shakePlayer,setShakePlayer]=useState(false);
+  var [showSlash,setShowSlash]=useState(false);
+  var [showLevelUp,setShowLevelUp]=useState(false);
+  var [screenFlash,setScreenFlash]=useState(null);
+  var pidRef=useRef(0);
 
-  function handleSelect(letter) {
-    if (selected !== null) return;
-    setSelected(letter);
-    const correct = letter === current.silent;
-    if (correct) {
-      const ns = streak + 1;
-      setScore((s) => s + 1);
-      setStreak(ns);
-      if (ns > bestStreak) setBestStreak(ns);
-    } else { setStreak(0); }
-    setResults((r) => [...r, { word: current.word, silent: current.silent, related: current.related, chosen: letter, correct }]);
-    setShowResult(true);
+  function spawnP(texts,bx,by,color){
+    var ps=texts.map(function(t){return{id:pidRef.current++,text:t,x:bx+(Math.random()-0.5)*80,y:by-Math.random()*30,color:color,size:typeof t==="string"&&t.length>2?14:20,dur:0.8+Math.random()*0.4};});
+    setParticles(function(prev){return prev.concat(ps);});
+    setTimeout(function(){setParticles(function(prev){return prev.filter(function(p){return ps.indexOf(p)===-1;});});},1500);
   }
 
-  function handleNext() { setSelected(null); setShowResult(false); setIndex((i) => i + 1); }
+  function pickMonster(lvlData,wi){
+    if(wi>=lvlData.words.length-1)return Object.assign({},lvlData.boss);
+    return Object.assign({},lvlData.minions[wi%lvlData.minions.length]);
+  }
 
-  if (done) {
-    const pct = Math.round((score / words.length) * 100);
-    const missed = results.filter((r) => !r.correct);
-    return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 16px" }}>
-        <div style={{ width: "100%", maxWidth: 560, borderRadius: 24, padding: 40, background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", textAlign: "center" }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>{pct >= 90 ? "\u{1F3C6}" : pct >= 70 ? "\u2B50" : "\u{1F4DA}"}</div>
-          <div style={{ fontSize: 36, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>{pct >= 90 ? "Outstanding!" : pct >= 70 ? "Great Work!" : "Keep Practicing!"}</div>
-          <div style={{ fontSize: 60, fontWeight: 800, color: pct >= 70 ? "#4ade80" : "#fb923c", marginBottom: 8, fontFamily: "'Space Mono', monospace" }}>{score}/{words.length}</div>
-          <div style={{ fontSize: 15, color: "#94a3b8", marginBottom: 8 }}>{pct}% correct</div>
-          <div style={{ fontSize: 14, color: "#64748b", marginBottom: 32 }}>Best streak: {bestStreak} in a row</div>
-          {missed.length > 0 && (
-            <div style={{ textAlign: "left", marginBottom: 32 }}>
-              <div style={{ fontSize: 14, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12, fontFamily: "'Space Mono', monospace" }}>Review these:</div>
-              {missed.map((m, i) => (
-                <div key={i} style={{ background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.15)", borderRadius: 10, padding: "12px 16px", marginBottom: 8 }}>
-                  <span style={{ color: "#f8fafc", fontWeight: 600, fontFamily: "'Space Mono', monospace" }}>{m.word}</span>
-                  <span style={{ color: "#64748b", margin: "0 8px" }}> -- </span>
-                  <span style={{ color: "#94a3b8", fontSize: 13 }}>silent "{m.silent}" (think: <span style={{ color: "#38bdf8" }}>{m.related}</span>)</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{ display: "flex", gap: 12 }}>
-            <button onClick={onBack} style={{ flex: 1, padding: "14px 20px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Menu</button>
-            <button onClick={() => { setIndex(0); setScore(0); setSelected(null); setShowResult(false); setResults([]); setStreak(0); setBestStreak(0); }} style={{ flex: 1, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg, #4ade80, #22d3ee)", border: "none", color: "#0f172a", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Try Again</button>
-          </div>
-        </div>
-      </div>
+  function startLevel(lvlId){
+    SFX.init();
+    var lvlData=LEVELS.find(function(l){return l.id===lvlId;});
+    setSelectedLevel(lvlData);
+    var q=shuffle(lvlData.words);
+    setWordQueue(q);setWordIndex(0);
+    setStreak(0);setBestStreak(0);setRoundCorrect(0);setRoundTotal(0);setMissed([]);setParticles([]);
+    setPlayerHP(maxHP);
+    var m=pickMonster(lvlData,0);
+    setCurrentMonster(m);setMonsterHP(m.hp);setMonsterMaxHP(m.hp);
+    setChoices(genChoices(q[0].silent));
+    setSelected(null);setShowResult(false);
+    setScreen("battle");
+    if(m.isBoss&&soundOn)setTimeout(function(){SFX.boss();},200);
+  }
+
+  function handleAnswer(letter){
+    if(selected!==null)return;
+    setSelected(letter);setShowResult(true);
+    setRoundTotal(function(p){return p+1;});
+    var currentWord=wordQueue[wordIndex];
+    var correct=letter===currentWord.silent;
+    var cx=Math.min(window.innerWidth,480)/2;
+
+    if(correct){
+      setRoundCorrect(function(p){return p+1;});
+      var ns=streak+1;setStreak(ns);
+      if(ns>bestStreak)setBestStreak(ns);
+      if(soundOn)SFX.attack();
+      setShowSlash(true);setTimeout(function(){setShowSlash(false);},500);
+      setTimeout(function(){setHitMonster(true);setTimeout(function(){setHitMonster(false);},400);},200);
+      setScreenFlash(selectedLevel.color);setTimeout(function(){setScreenFlash(null);},200);
+      var dmg=ns>=5?3:ns>=3?2:1;
+      var newMHP=Math.max(0,monsterHP-dmg);
+      setMonsterHP(newMHP);
+      spawnP(dmg>1?["-"+dmg+" HP","COMBO!"]:[ "-1 HP","\u2728"],cx,180,selectedLevel.color);
+      if((ns===3||ns===5)&&soundOn)setTimeout(function(){SFX.combo();},300);
+      var xpGain=10+(ns>=3?5:0);
+      var newXP=xp+xpGain;
+      spawnP(["+"+xpGain+" XP"],cx-100,350,"#fbbf24");
+      if(newXP>=xpToNext){
+        var nl=level+1;setLevel(nl);setXP(newXP-xpToNext);
+        setXpToNext(Math.floor(xpToNext*1.4));
+        var nm=maxHP+1;setMaxHP(nm);setPlayerHP(function(p){return Math.min(p+2,nm);});
+        setShowLevelUp(true);if(soundOn)setTimeout(function(){SFX.levelUp();},400);
+        setTimeout(function(){setShowLevelUp(false);},2000);
+      }else{setXP(newXP);}
+    }else{
+      setStreak(0);if(soundOn)SFX.wrong();
+      setShakePlayer(true);setTimeout(function(){setShakePlayer(false);},400);
+      setScreenFlash("#f87171");setTimeout(function(){setScreenFlash(null);},200);
+      setPlayerHP(function(prev){
+        var nh=prev-1;
+        if(nh<=0)setTimeout(function(){if(soundOn)SFX.defeat();setScreen("defeat");},1200);
+        return nh;
+      });
+      setMissed(function(prev){return prev.concat([{word:currentWord.word,silent:currentWord.silent,related:currentWord.related,hint:currentWord.hint}]);});
+      spawnP(["-1 \u2764\uFE0F"],cx+60,380,"#f87171");
+    }
+  }
+
+  function handleNext(){
+    var currentWord=wordQueue[wordIndex];
+    var wasCorrect=selected===currentWord.silent;
+    var monsterDead=wasCorrect&&monsterHP<=0;
+    var nextIdx=wordIndex+1;
+    if(nextIdx>=wordQueue.length){
+      var pct=roundTotal>0?Math.round((roundCorrect/roundTotal)*100):0;
+      var stars=playerHP===maxHP?3:pct>=80?2:1;
+      setTotalStars(function(prev){var n=Object.assign({},prev);n[selectedLevel.id]=Math.max(stars,prev[selectedLevel.id]||0);return n;});
+      if(selectedLevel.id<5)setUnlockedLevels(function(prev){return prev.indexOf(selectedLevel.id+1)===-1?prev.concat([selectedLevel.id+1]):prev;});
+      if(soundOn)SFX.victory();setScreen("levelComplete");return;
+    }
+    setWordIndex(nextIdx);
+    var nextWord=wordQueue[nextIdx];
+    setChoices(genChoices(nextWord.silent));setSelected(null);setShowResult(false);
+    if(monsterDead){
+      var m=pickMonster(selectedLevel,nextIdx);
+      setCurrentMonster(m);setMonsterHP(m.hp);setMonsterMaxHP(m.hp);
+      if(m.isBoss&&soundOn)setTimeout(function(){SFX.boss();},200);
+    }
+  }
+
+  /* ─── TITLE ─── */
+  if(screen==="title"){
+    return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#0c0a1a 0%,#1a0e2e 40%,#0f172a 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 16px",position:"relative",overflow:"hidden"}},
+      React.createElement("div",{style:{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none"}},
+        Array.from({length:50}).map(function(_,i){return React.createElement("div",{key:i,style:{position:"absolute",left:(i*37%100)+"%",top:(i*53%100)+"%",width:(i%3)+1,height:(i%3)+1,background:"#fff",borderRadius:"50%",opacity:0.15+(i%5)*0.12,animation:"twk "+(2+i%3)+"s ease-in-out "+i*0.1+"s infinite alternate"}});})
+      ),
+      React.createElement("div",{style:{textAlign:"center",position:"relative",zIndex:1}},
+        React.createElement("div",{style:{fontSize:80,marginBottom:8,filter:"drop-shadow(0 0 20px rgba(251,191,36,0.4))",animation:"fl 3s ease-in-out infinite"}},"\u2694\uFE0F"),
+        React.createElement("div",{style:{fontSize:12,color:"#a78bfa",textTransform:"uppercase",letterSpacing:6,marginBottom:8,fontFamily:"'Space Mono',monospace"}},"Silent Letters Quest"),
+        React.createElement("h1",{style:{fontSize:48,fontWeight:900,margin:"0 0 4px",lineHeight:1,background:"linear-gradient(135deg,#fbbf24,#f59e0b,#fbbf24)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}},"SPELL KNIGHT"),
+        React.createElement("p",{style:{fontSize:14,color:"#64748b",margin:"0 0 8px"}},"Volume II"),
+        React.createElement("p",{style:{fontSize:15,color:"#94a3b8",maxWidth:380,margin:"0 auto 32px",lineHeight:1.6}},"Five realms. Twenty-six words. Every silent letter revealed by a related word that speaks the truth."),
+        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12,maxWidth:320,margin:"0 auto"}},
+          React.createElement("button",{onClick:function(){setScreen("levelSelect");},style:{padding:"18px 32px",borderRadius:14,fontSize:18,fontWeight:700,background:"linear-gradient(135deg,#fbbf24,#f59e0b)",border:"none",color:"#1a0e2e",boxShadow:"0 4px 20px rgba(251,191,36,0.3),inset 0 1px 0 rgba(255,255,255,0.2)",letterSpacing:1}},"BEGIN QUEST"),
+          React.createElement("button",{onClick:function(){setSoundOn(!soundOn);},style:{padding:"10px",borderRadius:10,fontSize:14,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#94a3b8"}},"Sound: "+(soundOn?"ON \u{1F50A}":"OFF \u{1F507}"))
+        ),
+        React.createElement("div",{style:{marginTop:40,display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16,maxWidth:360,margin:"40px auto 0"}},
+          [{icon:"\u2764\uFE0F",label:"5 HP",desc:"Survive each realm"},{icon:"\u{1F525}",label:"Combos",desc:"Streaks hit harder"},{icon:"\u{1F4A1}",label:"Clues",desc:"Related word hints"}].map(function(item,i){
+            return React.createElement("div",{key:i,style:{textAlign:"center",padding:12}},
+              React.createElement("div",{style:{fontSize:28,marginBottom:4}},item.icon),
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#f8fafc"}},item.label),
+              React.createElement("div",{style:{fontSize:11,color:"#64748b"}},item.desc)
+            );
+          })
+        )
+      )
     );
   }
 
-  return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px" }}>
-      <div style={{ width: "100%", maxWidth: 560, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 14 }}>Back</button>
-        <div style={{ display: "flex", gap: 16, fontSize: 14, fontFamily: "'Space Mono', monospace" }}>
-          <span style={{ color: "#4ade80" }}>{score} correct</span>
-          {streak >= 2 && <span style={{ color: "#fbbf24" }}>{streak} streak \u{1F525}</span>}
-        </div>
-      </div>
+  /* ─── LEVEL SELECT ─── */
+  if(screen==="levelSelect"){
+    return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#0c0a1a 0%,#1a0e2e 40%,#0f172a 100%)",display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 16px"}},
+      React.createElement("div",{style:{width:"100%",maxWidth:480}},
+        React.createElement("button",{onClick:function(){setScreen("title");},style:{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",color:"#94a3b8",padding:"8px 16px",borderRadius:8,fontSize:14,marginBottom:24}},"Back"),
+        React.createElement("div",{style:{textAlign:"center",marginBottom:8}},
+          React.createElement("div",{style:{fontSize:11,color:"#64748b",textTransform:"uppercase",letterSpacing:3,fontFamily:"'Space Mono',monospace"}},"Choose Your Realm")
+        ),
+        React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:8,marginBottom:24}},
+          React.createElement("div",{style:{fontSize:12,color:"#a78bfa",fontFamily:"'Space Mono',monospace",background:"rgba(167,139,250,0.1)",padding:"4px 12px",borderRadius:20}},"Lv."+level),
+          React.createElement("div",{style:{fontSize:12,color:"#94a3b8",fontFamily:"'Space Mono',monospace",background:"rgba(255,255,255,0.05)",padding:"4px 12px",borderRadius:20}},maxHP+" Max HP")
+        ),
+        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+          LEVELS.map(function(lv){
+            var unlocked=unlockedLevels.indexOf(lv.id)!==-1;
+            var stars=totalStars[lv.id]||0;
+            return React.createElement("button",{key:lv.id,onClick:function(){if(unlocked)startLevel(lv.id);},disabled:!unlocked,style:{padding:"20px 24px",borderRadius:16,textAlign:"left",background:unlocked?"linear-gradient(145deg,rgba(30,41,59,0.9),rgba(51,65,85,0.9))":"rgba(15,23,42,0.6)",border:unlocked?"1px solid "+lv.color+"33":"1px solid rgba(255,255,255,0.05)",opacity:unlocked?1:0.5,boxShadow:unlocked?"0 4px 20px "+lv.color+"11":"none",transition:"all 0.2s"}},
+              React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+                React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+                  React.createElement("span",{style:{fontSize:28}},unlocked?lv.boss.emoji:"\u{1F512}"),
+                  React.createElement("div",null,
+                    React.createElement("div",{style:{fontSize:11,color:lv.color,textTransform:"uppercase",letterSpacing:2,fontFamily:"'Space Mono',monospace"}},"Level "+lv.id+" - "+lv.rank),
+                    React.createElement("div",{style:{fontSize:17,fontWeight:700,color:unlocked?"#f8fafc":"#475569"}},lv.name)
+                  )
+                ),
+                React.createElement("div",{style:{fontSize:16,letterSpacing:2}},
+                  [1,2,3].map(function(s){return React.createElement("span",{key:s,style:{color:s<=stars?"#fbbf24":"#334155"}},"\u2B50");})
+                )
+              ),
+              React.createElement("div",{style:{fontSize:13,color:"#64748b",marginLeft:38}},lv.desc),
+              React.createElement("div",{style:{fontSize:11,color:"#475569",marginLeft:38,marginTop:4,fontFamily:"'Space Mono',monospace"}},lv.words.length+" words | Boss: "+lv.boss.name)
+            );
+          })
+        )
+      )
+    );
+  }
 
-      <div style={{ width: "100%", maxWidth: 560, marginBottom: 24 }}>
-        <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
-          <div style={{ height: "100%", width: ((index) / words.length) * 100 + "%", background: "linear-gradient(90deg, #4ade80, #22d3ee)", borderRadius: 2, transition: "width 0.4s ease" }} />
-        </div>
-        <div style={{ textAlign: "right", color: "#64748b", fontSize: 12, marginTop: 6, fontFamily: "'Space Mono', monospace" }}>{index + 1} / {words.length}</div>
-      </div>
+  /* ─── BATTLE ─── */
+  if(screen==="battle"&&selectedLevel&&wordQueue.length>0){
+    var currentWord=wordQueue[wordIndex];
+    var letters=getBlank(currentWord);
+    var isCorrect=selected===currentWord.silent;
+    var roundNum=wordIndex+1;
+    var totalWords=wordQueue.length;
 
-      <div style={{ width: "100%", maxWidth: 560, borderRadius: 20, padding: 36, background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)", marginBottom: 24, textAlign: "center" }}>
-        <div style={{ fontSize: 13, color: "#64748b", textTransform: "uppercase", letterSpacing: 3, marginBottom: 20, fontFamily: "'Space Mono', monospace" }}>Fill in the silent letter</div>
-        <div style={{ fontSize: 52, fontWeight: 800, color: "#f8fafc", letterSpacing: 6, marginBottom: 24, fontFamily: "'Space Mono', monospace" }}>{getWordWithBlank(current)}</div>
-        <div style={{ fontSize: 15, color: "#94a3b8", marginBottom: 8 }}>Clue: <span style={{ color: "#38bdf8", fontWeight: 600 }}>{current.related}</span></div>
-        <div style={{ fontSize: 13, color: "#475569", fontStyle: "italic" }}>{current.hint}</div>
-      </div>
+    return React.createElement("div",{style:{minHeight:"100vh",position:"relative",overflow:"hidden",background:currentMonster&&currentMonster.isBoss?"linear-gradient(180deg,#2d0a0a 0%,#1a0e2e 40%,#0f172a 100%)":"linear-gradient(180deg,#0c0a1a 0%,#1a0e2e 40%,#0f172a 100%)"}},
+      screenFlash&&React.createElement("div",{style:{position:"absolute",inset:0,background:screenFlash,opacity:0.15,zIndex:20,pointerEvents:"none"}}),
+      showLevelUp&&React.createElement("div",{style:{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:30,pointerEvents:"none"}},
+        React.createElement("div",{style:{textAlign:"center",animation:"lpop 2s ease-out forwards"}},
+          React.createElement("div",{style:{fontSize:48,fontWeight:900,color:"#fbbf24",textShadow:"0 0 30px rgba(251,191,36,0.6)",fontFamily:"'Space Mono',monospace"}},"LEVEL UP!"),
+          React.createElement("div",{style:{fontSize:20,color:"#fde68a"}},"Level "+level)
+        )
+      ),
+      React.createElement(Particles,{particles:particles}),
+      React.createElement("div",{style:{maxWidth:480,margin:"0 auto",padding:"16px",position:"relative",zIndex:5}},
+        /* HUD */
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}},
+          React.createElement("div",{style:{fontSize:11,color:selectedLevel.color,fontFamily:"'Space Mono',monospace"}},selectedLevel.name),
+          React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+            streak>=2&&React.createElement("div",{style:{fontSize:13,color:"#fbbf24",fontWeight:700,fontFamily:"'Space Mono',monospace",animation:"pulse 0.6s ease infinite"}},streak+"x \u{1F525}"),
+            React.createElement("div",{style:{fontSize:12,color:"#a78bfa",fontFamily:"'Space Mono',monospace",background:"rgba(167,139,250,0.1)",padding:"3px 8px",borderRadius:16}},"Lv."+level)
+          )
+        ),
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}},
+          React.createElement("span",{style:{fontSize:11,color:"#64748b",fontFamily:"'Space Mono',monospace"}},"Word "+roundNum+"/"+totalWords),
+          React.createElement("span",{style:{fontSize:11,color:"#4ade80",fontFamily:"'Space Mono',monospace"}},roundCorrect+" correct")
+        ),
+        React.createElement("div",{style:{height:4,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:4}},
+          React.createElement("div",{style:{height:"100%",width:(roundNum/totalWords)*100+"%",background:"linear-gradient(90deg,"+selectedLevel.color+","+selectedLevel.color+"88)",borderRadius:2,transition:"width 0.4s ease"}})
+        ),
+        React.createElement("div",{style:{height:3,background:"rgba(255,255,255,0.04)",borderRadius:2,overflow:"hidden",marginBottom:16}},
+          React.createElement("div",{style:{height:"100%",width:(xp/xpToNext)*100+"%",background:"linear-gradient(90deg,#a78bfa,#c084fc)",borderRadius:2,transition:"width 0.4s ease"}})
+        ),
+        /* Monster */
+        React.createElement("div",{style:{background:"rgba(0,0,0,0.2)",borderRadius:20,padding:"20px",marginBottom:16,position:"relative",border:currentMonster&&currentMonster.isBoss?"1px solid "+selectedLevel.color+"33":"1px solid rgba(255,255,255,0.05)"}},
+          currentMonster&&currentMonster.isBoss&&React.createElement("div",{style:{position:"absolute",top:10,left:"50%",transform:"translateX(-50%)",fontSize:10,color:selectedLevel.color,textTransform:"uppercase",letterSpacing:3,fontFamily:"'Space Mono',monospace",animation:"pulse 1s ease infinite"}},"BOSS"),
+          React.createElement(SlashEffect,{show:showSlash}),
+          React.createElement("div",{style:{textAlign:"center",marginBottom:10,marginTop:currentMonster&&currentMonster.isBoss?14:0}},React.createElement(MonsterSprite,{monster:currentMonster||{emoji:"?"},shake:shakeMonster,hit:hitMonster})),
+          React.createElement("div",{style:{textAlign:"center",fontSize:15,fontWeight:700,color:"#f8fafc",marginBottom:6}},currentMonster&&currentMonster.name),
+          React.createElement("div",{style:{maxWidth:200,margin:"0 auto"}},React.createElement(HPBar,{current:monsterHP,max:monsterMaxHP,color:selectedLevel.color,label:"Monster HP"}))
+        ),
+        /* Word */
+        React.createElement("div",{style:{textAlign:"center",marginBottom:16,padding:"18px",background:"rgba(255,255,255,0.03)",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)"}},
+          React.createElement("div",{style:{fontSize:11,color:"#64748b",textTransform:"uppercase",letterSpacing:3,marginBottom:10,fontFamily:"'Space Mono',monospace"}},"Find the silent letter"),
+          React.createElement("div",{style:{fontSize:currentWord.word.length>7?36:44,fontWeight:800,letterSpacing:currentWord.word.length>7?4:8,marginBottom:10,fontFamily:"'Space Mono',monospace"}},
+            letters.map(function(ch,i){return React.createElement("span",{key:i,style:{color:ch==="?"?"#fbbf24":showResult&&isCorrect&&i===currentWord.position?"#4ade80":"#f8fafc",textShadow:ch==="?"?"0 0 20px rgba(251,191,36,0.5)":"none",display:"inline-block",animation:ch==="?"?"glow 1.5s ease-in-out infinite":"none"}},showResult&&i===currentWord.position?currentWord.silent:ch);})
+          ),
+          React.createElement("div",{style:{fontSize:13,color:"#38bdf8",fontWeight:500}},"Related word: ",React.createElement("span",{style:{fontWeight:700}},currentWord.related)),
+          showResult&&React.createElement("div",{style:{fontSize:12,color:"#94a3b8",marginTop:8,lineHeight:1.5,fontStyle:"italic",maxWidth:360,margin:"8px auto 0"}},currentWord.hint)
+        ),
+        /* Choices */
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}},
+          choices.map(function(letter){
+            var bg="rgba(255,255,255,0.06)",bc="rgba(255,255,255,0.1)",tc="#f8fafc";
+            if(showResult){
+              if(letter===currentWord.silent){bg="rgba(74,222,128,0.15)";bc="rgba(74,222,128,0.5)";tc="#4ade80";}
+              else if(letter===selected){bg="rgba(248,113,113,0.15)";bc="rgba(248,113,113,0.5)";tc="#f87171";}
+              else{tc="#475569";}
+            }
+            return React.createElement("button",{key:letter,onClick:function(){handleAnswer(letter);},disabled:showResult,style:{padding:"16px 8px",borderRadius:12,background:bg,border:"2px solid "+bc,color:tc,fontSize:26,fontWeight:700,cursor:showResult?"default":"pointer",fontFamily:"'Space Mono',monospace",transition:"all 0.15s",textTransform:"lowercase"}},letter);
+          })
+        ),
+        /* Result */
+        showResult&&React.createElement("div",{style:{textAlign:"center"}},
+          React.createElement("div",{style:{padding:"12px 16px",borderRadius:12,marginBottom:12,background:isCorrect?"rgba(74,222,128,0.08)":"rgba(248,113,113,0.08)",border:"1px solid "+(isCorrect?"rgba(74,222,128,0.2)":"rgba(248,113,113,0.2)")}},
+            React.createElement("div",{style:{fontSize:14,fontWeight:700,color:isCorrect?"#4ade80":"#f87171",marginBottom:2}},isCorrect?(streak>=5?"UNSTOPPABLE! \u{1F525}\u{1F525}\u{1F525}":streak>=3?"COMBO HIT! \u{1F525}":"Direct hit! \u2694\uFE0F"):"The monster strikes back! \u{1F4A5}"),
+            React.createElement("div",{style:{fontSize:12,color:"#94a3b8"}},'The "'+currentWord.silent+'" is silent in "'+currentWord.word+'" but heard in "'+currentWord.related+'"')
+          ),
+          React.createElement("button",{onClick:handleNext,style:{width:"100%",padding:"14px",borderRadius:12,fontSize:15,fontWeight:700,background:"linear-gradient(135deg,"+selectedLevel.color+","+selectedLevel.color+"cc)",border:"none",color:"#0f172a",letterSpacing:0.5}},
+            wordIndex+1>=wordQueue.length?"Complete Level \u2192":monsterHP<=0&&isCorrect?"Next Monster \u2192":"Continue \u2192"
+          )
+        ),
+        /* Player */
+        React.createElement("div",{style:{marginTop:16,padding:"14px",background:"rgba(0,0,0,0.2)",borderRadius:14,border:"1px solid rgba(255,255,255,0.05)",animation:shakePlayer?"mshake 0.3s ease":"none"}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
+            React.createElement("div",{style:{fontSize:30}},"\u{1F9D1}\u200D\u2694\uFE0F"),
+            React.createElement("div",{style:{flex:1}},
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#f8fafc",marginBottom:4}},"Spell Knight"),
+              React.createElement(HPBar,{current:playerHP,max:maxHP,color:"#f87171",label:"Your HP",height:10})
+            )
+          )
+        )
+      )
+    );
+  }
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%", maxWidth: 560, marginBottom: 24 }}>
-        {choices.map((letter) => {
-          let bg = "rgba(255,255,255,0.05)";
-          let borderColor = "rgba(255,255,255,0.1)";
-          let textColor = "#f8fafc";
-          if (showResult) {
-            if (letter === current.silent) { bg = "rgba(74,222,128,0.15)"; borderColor = "rgba(74,222,128,0.4)"; textColor = "#4ade80"; }
-            else if (letter === selected && letter !== current.silent) { bg = "rgba(248,113,113,0.15)"; borderColor = "rgba(248,113,113,0.4)"; textColor = "#f87171"; }
-          }
-          return (
-            <button key={letter} onClick={() => handleSelect(letter)} disabled={showResult} style={{ padding: "20px", borderRadius: 14, background: bg, border: "2px solid " + borderColor, color: textColor, fontSize: 28, fontWeight: 700, cursor: showResult ? "default" : "pointer", fontFamily: "'Space Mono', monospace", transition: "all 0.2s", textTransform: "lowercase" }}>{letter}</button>
-          );
-        })}
-      </div>
+  /* ─── LEVEL COMPLETE ─── */
+  if(screen==="levelComplete"&&selectedLevel){
+    var pct=roundTotal>0?Math.round((roundCorrect/roundTotal)*100):0;
+    var stars=playerHP===maxHP?3:pct>=80?2:1;
+    var nextLv=LEVELS.find(function(l){return l.id===selectedLevel.id+1;});
+    return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#0c0a1a 0%,#1a0e2e 40%,#0f172a 100%)",display:"flex",flexDirection:"column",alignItems:"center",padding:"40px 16px"}},
+      React.createElement("div",{style:{width:"100%",maxWidth:480,textAlign:"center"}},
+        React.createElement("div",{style:{fontSize:56,marginBottom:4,animation:"fl 3s ease-in-out infinite"}},selectedLevel.boss.emoji),
+        React.createElement("div",{style:{fontSize:11,color:selectedLevel.color,textTransform:"uppercase",letterSpacing:4,marginBottom:8,fontFamily:"'Space Mono',monospace"}},selectedLevel.name+" Cleared"),
+        React.createElement("h1",{style:{fontSize:32,fontWeight:900,color:"#f8fafc",margin:"0 0 16px"}},pct>=90?"Flawless Victory!":pct>=70?"Well Fought!":"Realm Conquered!"),
+        React.createElement("div",{style:{fontSize:40,marginBottom:24,letterSpacing:8}},
+          [1,2,3].map(function(s){return React.createElement("span",{key:s,style:{color:s<=stars?"#fbbf24":"#334155",filter:s<=stars?"drop-shadow(0 0 8px rgba(251,191,36,0.4))":"none"}},"\u2B50");})
+        ),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}},
+          [{val:pct+"%",label:"Accuracy",color:"#4ade80"},{val:"Lv."+level,label:"Knight Level",color:"#a78bfa"},{val:""+bestStreak,label:"Best Streak",color:"#fbbf24"}].map(function(s,i){
+            return React.createElement("div",{key:i,style:{background:"rgba(255,255,255,0.04)",borderRadius:14,padding:"14px 8px",border:"1px solid rgba(255,255,255,0.06)"}},
+              React.createElement("div",{style:{fontSize:26,fontWeight:800,color:s.color,fontFamily:"'Space Mono',monospace"}},s.val),
+              React.createElement("div",{style:{fontSize:11,color:"#64748b",marginTop:4}},s.label)
+            );
+          })
+        ),
+        missed.length>0&&React.createElement("div",{style:{textAlign:"left",marginBottom:24,background:"rgba(251,146,60,0.05)",borderRadius:14,padding:16,border:"1px solid rgba(251,146,60,0.1)"}},
+          React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#fb923c",marginBottom:10,fontFamily:"'Space Mono',monospace"}},"WORDS TO REVIEW:"),
+          missed.map(function(w,i){return React.createElement("div",{key:i,style:{fontSize:13,color:"#94a3b8",marginBottom:8}},
+            React.createElement("span",{style:{color:"#f8fafc",fontWeight:600,fontFamily:"'Space Mono',monospace"}},w.word),' -- silent "'+w.silent+'"',
+            React.createElement("br"),React.createElement("span",{style:{fontSize:12,color:"#64748b"}},w.hint)
+          );})
+        ),
+        React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:10}},
+          nextLv&&React.createElement("button",{onClick:function(){startLevel(nextLv.id);},style:{width:"100%",padding:"16px",borderRadius:14,fontSize:16,fontWeight:700,background:"linear-gradient(135deg,"+nextLv.color+","+nextLv.color+"cc)",border:"none",color:"#0f172a",boxShadow:"0 4px 20px "+nextLv.color+"33"}},"Next: "+nextLv.name+" \u2192"),
+          !nextLv&&React.createElement("div",{style:{padding:"16px",borderRadius:14,background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.2)"}},
+            React.createElement("div",{style:{fontSize:18,fontWeight:800,color:"#fbbf24",marginBottom:4}},"\u{1F3C6} All Realms Conquered!"),
+            React.createElement("div",{style:{fontSize:13,color:"#94a3b8"}},"You have mastered every silent letter in the quest.")
+          ),
+          React.createElement("button",{onClick:function(){startLevel(selectedLevel.id);},style:{width:"100%",padding:"12px",borderRadius:12,fontSize:14,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"#94a3b8"}},"Replay Level"),
+          React.createElement("button",{onClick:function(){setScreen("levelSelect");},style:{width:"100%",padding:"12px",borderRadius:12,fontSize:14,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"#94a3b8"}},"Level Select")
+        )
+      )
+    );
+  }
 
-      {showResult && (
-        <div style={{ width: "100%", maxWidth: 560, textAlign: "center" }}>
-          <div style={{ padding: "16px 20px", borderRadius: 12, marginBottom: 16, background: selected === current.silent ? "rgba(74,222,128,0.08)" : "rgba(251,146,60,0.08)", border: "1px solid " + (selected === current.silent ? "rgba(74,222,128,0.2)" : "rgba(251,146,60,0.2)") }}>
-            <div style={{ fontSize: 15, color: selected === current.silent ? "#4ade80" : "#fb923c", fontWeight: 600, marginBottom: 4 }}>{selected === current.silent ? "Correct!" : 'The silent letter is "' + current.silent + '"'}</div>
-            <div style={{ fontSize: 13, color: "#94a3b8" }}>The "{current.silent}" is silent in "{current.word}" but heard in "{current.related}"</div>
-          </div>
-          <button onClick={handleNext} style={{ width: "100%", padding: "16px 20px", borderRadius: 12, background: "linear-gradient(135deg, #4ade80, #22d3ee)", border: "none", color: "#0f172a", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>{index + 1 < words.length ? "Next Question" : "See Results"}</button>
-        </div>
-      )}
-    </div>
-  );
+  /* ─── DEFEAT ─── */
+  if(screen==="defeat"&&selectedLevel){
+    var pct2=roundTotal>0?Math.round((roundCorrect/roundTotal)*100):0;
+    return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(180deg,#1a0000 0%,#1a0e2e 50%,#0f172a 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 16px"}},
+      React.createElement("div",{style:{width:"100%",maxWidth:480,textAlign:"center"}},
+        React.createElement("div",{style:{fontSize:72,marginBottom:16,opacity:0.8}},"\u{1F480}"),
+        React.createElement("h1",{style:{fontSize:32,fontWeight:900,color:"#f87171",margin:"0 0 8px"}},"DEFEATED"),
+        React.createElement("p",{style:{color:"#94a3b8",fontSize:15,marginBottom:4}},"The "+selectedLevel.name+" proved too dangerous this time."),
+        React.createElement("p",{style:{color:"#64748b",fontSize:14,marginBottom:24}},pct2+"% accuracy. Best streak: "+bestStreak+"."),
+        missed.length>0&&React.createElement("div",{style:{textAlign:"left",marginBottom:24,background:"rgba(251,146,60,0.05)",borderRadius:14,padding:16,border:"1px solid rgba(251,146,60,0.1)"}},
+          React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#fb923c",marginBottom:10,fontFamily:"'Space Mono',monospace"}},"STUDY THESE WORDS:"),
+          missed.map(function(w,i){return React.createElement("div",{key:i,style:{fontSize:13,color:"#94a3b8",marginBottom:8}},
+            React.createElement("span",{style:{color:"#f8fafc",fontWeight:600,fontFamily:"'Space Mono',monospace"}},w.word),' -- silent "'+w.silent+'"',
+            React.createElement("br"),React.createElement("span",{style:{fontSize:12,color:"#64748b"}},w.hint)
+          );})
+        ),
+        React.createElement("button",{onClick:function(){startLevel(selectedLevel.id);},style:{width:"100%",padding:"16px",borderRadius:14,fontSize:17,fontWeight:700,background:"linear-gradient(135deg,#fbbf24,#f59e0b)",border:"none",color:"#1a0e2e",boxShadow:"0 4px 20px rgba(251,191,36,0.3)",marginBottom:10}},"TRY AGAIN \u2694\uFE0F"),
+        React.createElement("button",{onClick:function(){setScreen("levelSelect");},style:{width:"100%",padding:"12px",borderRadius:12,fontSize:14,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"#94a3b8"}},"Level Select")
+      )
+    );
+  }
+
+  return null;
 }
 
-/* ─── Main Menu ─── */
-function App() {
-  const [mode, setMode] = useState(null);
-
-  if (mode === "flashcards") return <FlashcardMode words={WORDS} onBack={() => setMode(null)} />;
-  if (mode === "quiz") return <QuizMode words={WORDS} onBack={() => setMode(null)} />;
-
-  return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
-      <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <div style={{ fontSize: 13, color: "#64748b", textTransform: "uppercase", letterSpacing: 4, marginBottom: 12, fontFamily: "'Space Mono', monospace" }}>Grade 7 Practice</div>
-        <h1 style={{ fontSize: 42, fontWeight: 800, color: "#f8fafc", margin: "0 0 12px", lineHeight: 1.1 }}>Silent Letters</h1>
-        <p style={{ fontSize: 17, color: "#94a3b8", maxWidth: 420, margin: "0 auto", lineHeight: 1.6 }}>Use related words as clues to find the letters you can see but cannot hear.</p>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", maxWidth: 420 }}>
-        <button onClick={() => setMode("flashcards")} style={{ padding: "28px 32px", borderRadius: 16, cursor: "pointer", background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)", textAlign: "left" }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>{"\u{1F0CF}"}</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#f8fafc", marginBottom: 4 }}>Flashcards</div>
-          <div style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.5 }}>Flip through all 20 word pairs. See the blank, guess the letter, then tap to reveal.</div>
-        </button>
-        <button onClick={() => setMode("quiz")} style={{ padding: "28px 32px", borderRadius: 16, cursor: "pointer", background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)", textAlign: "left" }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>{"\u270F\uFE0F"}</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#f8fafc", marginBottom: 4 }}>Spelling Quiz</div>
-          <div style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.5 }}>20 questions, pick the silent letter from four choices. Track your score and streak.</div>
-        </button>
-      </div>
-      <div style={{ marginTop: 48, fontSize: 13, color: "#475569", textAlign: "center", fontFamily: "'Space Mono', monospace" }}>20 word pairs covering silent b, c, g, h, n, p, and t</div>
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(SpellKnight));
 </script>
 </body>
 </html>
-

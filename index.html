@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Silent Letters Practice - Grade 7</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Outfit', sans-serif; background: #0f172a; }
+  button { font-family: 'Outfit', sans-serif; }
+  button:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const WORDS = [
+  { word: "muscle", silent: "c", position: 3, related: "muscular", hint: "Think about the word that describes strength." },
+  { word: "bomb", silent: "b", position: 3, related: "bombard", hint: "Think about an attack with many explosions." },
+  { word: "sign", silent: "g", position: 2, related: "signal", hint: "Think about a light or flag that sends a message." },
+  { word: "column", silent: "n", position: 5, related: "columnist", hint: "Think about the person who writes for a newspaper." },
+  { word: "hymn", silent: "n", position: 3, related: "hymnal", hint: "Think about the book of songs in church." },
+  { word: "condemn", silent: "n", position: 6, related: "condemnation", hint: "Think about the act of declaring something wrong." },
+  { word: "malign", silent: "g", position: 4, related: "malignant", hint: "Think about a dangerous tumor." },
+  { word: "autumn", silent: "n", position: 5, related: "autumnal", hint: "Think about the adjective for fall colors." },
+  { word: "resign", silent: "g", position: 4, related: "resignation", hint: "Think about the letter you write when quitting." },
+  { word: "crumb", silent: "b", position: 4, related: "crumble", hint: "Think about a cookie falling apart." },
+  { word: "design", silent: "g", position: 4, related: "designate", hint: "Think about choosing someone for a role." },
+  { word: "solemn", silent: "n", position: 5, related: "solemnity", hint: "Think about the seriousness of a ceremony." },
+  { word: "doubt", silent: "b", position: 3, related: "dubious", hint: "Think about something that seems questionable." },
+  { word: "receipt", silent: "p", position: 4, related: "reception", hint: "Think about a welcome event or front desk." },
+  { word: "heir", silent: "h", position: 0, related: "hereditary", hint: "Think about traits passed down through families." },
+  { word: "assign", silent: "g", position: 4, related: "assignation", hint: "Think about a secret meeting arrangement." },
+  { word: "debt", silent: "b", position: 2, related: "debit", hint: "Think about money taken from your bank account." },
+  { word: "soften", silent: "t", position: 3, related: "soft", hint: "Think about the base adjective for something gentle." },
+  { word: "fasten", silent: "t", position: 3, related: "fast", hint: "Think about holding something tight and secure." },
+  { word: "hasten", silent: "t", position: 3, related: "haste", hint: "Think about doing something in a big hurry." },
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getWordWithBlank(entry) {
+  const chars = entry.word.split("");
+  chars[entry.position] = "_";
+  return chars.join("");
+}
+
+function generateLetterChoices(correct) {
+  const consonants = "bcdfghjklmnpqrstvwxyz".split("");
+  const others = consonants.filter((c) => c !== correct);
+  const shuffled = shuffle(others).slice(0, 3);
+  shuffled.push(correct);
+  return shuffle(shuffled);
+}
+
+/* ─── Flashcard Mode ─── */
+function FlashcardMode({ words, onBack }) {
+  const [index, setIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [known, setKnown] = useState(new Set());
+  const [learning, setLearning] = useState(new Set());
+
+  const card = words[index];
+  const total = words.length;
+
+  function next(markKnown) {
+    if (markKnown) setKnown((s) => new Set([...s, index]));
+    else setLearning((s) => new Set([...s, index]));
+    setFlipped(false);
+    setTimeout(() => setIndex((i) => (i + 1) % total), 200);
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px" }}>
+      <div style={{ width: "100%", maxWidth: 560, marginBottom: 20 }}>
+        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 14 }}>
+          Back to Menu
+        </button>
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 560, marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: "#94a3b8", fontSize: 13, fontFamily: "'Space Mono', monospace" }}>
+          <span>Card {index + 1} of {total}</span>
+          <span style={{ color: "#4ade80" }}>{known.size} known</span>
+        </div>
+        <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: "100%", width: ((known.size + learning.size) / total) * 100 + "%", background: "linear-gradient(90deg, #4ade80, #22d3ee)", borderRadius: 2, transition: "width 0.4s ease" }} />
+        </div>
+      </div>
+
+      <div onClick={() => setFlipped(!flipped)} style={{ width: "100%", maxWidth: 560, minHeight: 320, borderRadius: 20, cursor: "pointer", perspective: 1000, marginBottom: 24 }}>
+        <div style={{ width: "100%", minHeight: 320, position: "relative", transformStyle: "preserve-3d", transition: "transform 0.5s ease", transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}>
+          {/* Front */}
+          <div style={{ position: "absolute", width: "100%", minHeight: 320, backfaceVisibility: "hidden", background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, boxSizing: "border-box", boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+            <div style={{ fontSize: 13, color: "#64748b", textTransform: "uppercase", letterSpacing: 3, marginBottom: 16, fontFamily: "'Space Mono', monospace" }}>What letter is missing?</div>
+            <div style={{ fontSize: 56, fontWeight: 800, color: "#f8fafc", letterSpacing: 6, marginBottom: 20, fontFamily: "'Space Mono', monospace" }}>{getWordWithBlank(card)}</div>
+            <div style={{ fontSize: 15, color: "#94a3b8", marginBottom: 8 }}>Related word: <span style={{ color: "#38bdf8", fontWeight: 600 }}>{card.related}</span></div>
+            <div style={{ fontSize: 13, color: "#475569", marginTop: 24, fontStyle: "italic" }}>tap to reveal</div>
+          </div>
+          {/* Back */}
+          <div style={{ position: "absolute", width: "100%", minHeight: 320, backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "linear-gradient(145deg, #064e3b, #065f46)", border: "1px solid rgba(52,211,153,0.2)", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, boxSizing: "border-box", boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+            <div style={{ fontSize: 13, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: 3, marginBottom: 16, fontFamily: "'Space Mono', monospace" }}>Answer</div>
+            <div style={{ fontSize: 56, fontWeight: 800, color: "#f8fafc", letterSpacing: 4, marginBottom: 8, fontFamily: "'Space Mono', monospace" }}>
+              {card.word.split("").map((ch, i) => (
+                <span key={i} style={{ color: i === card.position ? "#4ade80" : "#f8fafc", textDecoration: i === card.position ? "underline" : "none", textUnderlineOffset: 6 }}>{ch}</span>
+              ))}
+            </div>
+            <div style={{ fontSize: 18, color: "#a7f3d0", marginBottom: 12 }}>Silent letter: <span style={{ fontWeight: 700, fontSize: 22, fontFamily: "'Space Mono', monospace" }}>"{card.silent}"</span></div>
+            <div style={{ fontSize: 14, color: "#6ee7b7", textAlign: "center", maxWidth: 400, lineHeight: 1.6 }}>
+              {card.hint}<br />
+              <span style={{ color: "#a7f3d0" }}>You can hear the "{card.silent}" in </span>
+              <span style={{ fontWeight: 700, color: "#f8fafc" }}>"{card.related}"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {flipped && (
+        <div style={{ display: "flex", gap: 16, width: "100%", maxWidth: 560 }}>
+          <button onClick={() => next(false)} style={{ flex: 1, padding: "16px 20px", borderRadius: 12, border: "1px solid rgba(251,146,60,0.3)", background: "rgba(251,146,60,0.1)", color: "#fb923c", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Still Learning</button>
+          <button onClick={() => next(true)} style={{ flex: 1, padding: "16px 20px", borderRadius: 12, border: "1px solid rgba(74,222,128,0.3)", background: "rgba(74,222,128,0.1)", color: "#4ade80", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Got It</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Quiz Mode ─── */
+function QuizMode({ words: originalWords, onBack }) {
+  const [words] = useState(() => shuffle(originalWords));
+  const [index, setIndex] = useState(0);
+  const [choices, setChoices] = useState(() => generateLetterChoices(originalWords[0].silent));
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [results, setResults] = useState([]);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+
+  useEffect(() => {
+    if (index < words.length) setChoices(generateLetterChoices(words[index].silent));
+  }, [index, words]);
+
+  const current = words[index];
+  const done = index >= words.length;
+
+  function handleSelect(letter) {
+    if (selected !== null) return;
+    setSelected(letter);
+    const correct = letter === current.silent;
+    if (correct) {
+      const ns = streak + 1;
+      setScore((s) => s + 1);
+      setStreak(ns);
+      if (ns > bestStreak) setBestStreak(ns);
+    } else { setStreak(0); }
+    setResults((r) => [...r, { word: current.word, silent: current.silent, related: current.related, chosen: letter, correct }]);
+    setShowResult(true);
+  }
+
+  function handleNext() { setSelected(null); setShowResult(false); setIndex((i) => i + 1); }
+
+  if (done) {
+    const pct = Math.round((score / words.length) * 100);
+    const missed = results.filter((r) => !r.correct);
+    return (
+      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 16px" }}>
+        <div style={{ width: "100%", maxWidth: 560, borderRadius: 24, padding: 40, background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)", textAlign: "center" }}>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>{pct >= 90 ? "\u{1F3C6}" : pct >= 70 ? "\u2B50" : "\u{1F4DA}"}</div>
+          <div style={{ fontSize: 36, fontWeight: 800, color: "#f8fafc", marginBottom: 8 }}>{pct >= 90 ? "Outstanding!" : pct >= 70 ? "Great Work!" : "Keep Practicing!"}</div>
+          <div style={{ fontSize: 60, fontWeight: 800, color: pct >= 70 ? "#4ade80" : "#fb923c", marginBottom: 8, fontFamily: "'Space Mono', monospace" }}>{score}/{words.length}</div>
+          <div style={{ fontSize: 15, color: "#94a3b8", marginBottom: 8 }}>{pct}% correct</div>
+          <div style={{ fontSize: 14, color: "#64748b", marginBottom: 32 }}>Best streak: {bestStreak} in a row</div>
+          {missed.length > 0 && (
+            <div style={{ textAlign: "left", marginBottom: 32 }}>
+              <div style={{ fontSize: 14, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 2, marginBottom: 12, fontFamily: "'Space Mono', monospace" }}>Review these:</div>
+              {missed.map((m, i) => (
+                <div key={i} style={{ background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.15)", borderRadius: 10, padding: "12px 16px", marginBottom: 8 }}>
+                  <span style={{ color: "#f8fafc", fontWeight: 600, fontFamily: "'Space Mono', monospace" }}>{m.word}</span>
+                  <span style={{ color: "#64748b", margin: "0 8px" }}> -- </span>
+                  <span style={{ color: "#94a3b8", fontSize: 13 }}>silent "{m.silent}" (think: <span style={{ color: "#38bdf8" }}>{m.related}</span>)</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 12 }}>
+            <button onClick={onBack} style={{ flex: 1, padding: "14px 20px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Menu</button>
+            <button onClick={() => { setIndex(0); setScore(0); setSelected(null); setShowResult(false); setResults([]); setStreak(0); setBestStreak(0); }} style={{ flex: 1, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg, #4ade80, #22d3ee)", border: "none", color: "#0f172a", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Try Again</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 16px" }}>
+      <div style={{ width: "100%", maxWidth: 560, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <button onClick={onBack} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "#94a3b8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 14 }}>Back</button>
+        <div style={{ display: "flex", gap: 16, fontSize: 14, fontFamily: "'Space Mono', monospace" }}>
+          <span style={{ color: "#4ade80" }}>{score} correct</span>
+          {streak >= 2 && <span style={{ color: "#fbbf24" }}>{streak} streak \u{1F525}</span>}
+        </div>
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 560, marginBottom: 24 }}>
+        <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: "100%", width: ((index) / words.length) * 100 + "%", background: "linear-gradient(90deg, #4ade80, #22d3ee)", borderRadius: 2, transition: "width 0.4s ease" }} />
+        </div>
+        <div style={{ textAlign: "right", color: "#64748b", fontSize: 12, marginTop: 6, fontFamily: "'Space Mono', monospace" }}>{index + 1} / {words.length}</div>
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 560, borderRadius: 20, padding: 36, background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)", marginBottom: 24, textAlign: "center" }}>
+        <div style={{ fontSize: 13, color: "#64748b", textTransform: "uppercase", letterSpacing: 3, marginBottom: 20, fontFamily: "'Space Mono', monospace" }}>Fill in the silent letter</div>
+        <div style={{ fontSize: 52, fontWeight: 800, color: "#f8fafc", letterSpacing: 6, marginBottom: 24, fontFamily: "'Space Mono', monospace" }}>{getWordWithBlank(current)}</div>
+        <div style={{ fontSize: 15, color: "#94a3b8", marginBottom: 8 }}>Clue: <span style={{ color: "#38bdf8", fontWeight: 600 }}>{current.related}</span></div>
+        <div style={{ fontSize: 13, color: "#475569", fontStyle: "italic" }}>{current.hint}</div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%", maxWidth: 560, marginBottom: 24 }}>
+        {choices.map((letter) => {
+          let bg = "rgba(255,255,255,0.05)";
+          let borderColor = "rgba(255,255,255,0.1)";
+          let textColor = "#f8fafc";
+          if (showResult) {
+            if (letter === current.silent) { bg = "rgba(74,222,128,0.15)"; borderColor = "rgba(74,222,128,0.4)"; textColor = "#4ade80"; }
+            else if (letter === selected && letter !== current.silent) { bg = "rgba(248,113,113,0.15)"; borderColor = "rgba(248,113,113,0.4)"; textColor = "#f87171"; }
+          }
+          return (
+            <button key={letter} onClick={() => handleSelect(letter)} disabled={showResult} style={{ padding: "20px", borderRadius: 14, background: bg, border: "2px solid " + borderColor, color: textColor, fontSize: 28, fontWeight: 700, cursor: showResult ? "default" : "pointer", fontFamily: "'Space Mono', monospace", transition: "all 0.2s", textTransform: "lowercase" }}>{letter}</button>
+          );
+        })}
+      </div>
+
+      {showResult && (
+        <div style={{ width: "100%", maxWidth: 560, textAlign: "center" }}>
+          <div style={{ padding: "16px 20px", borderRadius: 12, marginBottom: 16, background: selected === current.silent ? "rgba(74,222,128,0.08)" : "rgba(251,146,60,0.08)", border: "1px solid " + (selected === current.silent ? "rgba(74,222,128,0.2)" : "rgba(251,146,60,0.2)") }}>
+            <div style={{ fontSize: 15, color: selected === current.silent ? "#4ade80" : "#fb923c", fontWeight: 600, marginBottom: 4 }}>{selected === current.silent ? "Correct!" : 'The silent letter is "' + current.silent + '"'}</div>
+            <div style={{ fontSize: 13, color: "#94a3b8" }}>The "{current.silent}" is silent in "{current.word}" but heard in "{current.related}"</div>
+          </div>
+          <button onClick={handleNext} style={{ width: "100%", padding: "16px 20px", borderRadius: 12, background: "linear-gradient(135deg, #4ade80, #22d3ee)", border: "none", color: "#0f172a", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>{index + 1 < words.length ? "Next Question" : "See Results"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Main Menu ─── */
+function App() {
+  const [mode, setMode] = useState(null);
+
+  if (mode === "flashcards") return <FlashcardMode words={WORDS} onBack={() => setMode(null)} />;
+  if (mode === "quiz") return <QuizMode words={WORDS} onBack={() => setMode(null)} />;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <div style={{ fontSize: 13, color: "#64748b", textTransform: "uppercase", letterSpacing: 4, marginBottom: 12, fontFamily: "'Space Mono', monospace" }}>Grade 7 Practice</div>
+        <h1 style={{ fontSize: 42, fontWeight: 800, color: "#f8fafc", margin: "0 0 12px", lineHeight: 1.1 }}>Silent Letters</h1>
+        <p style={{ fontSize: 17, color: "#94a3b8", maxWidth: 420, margin: "0 auto", lineHeight: 1.6 }}>Use related words as clues to find the letters you can see but cannot hear.</p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", maxWidth: 420 }}>
+        <button onClick={() => setMode("flashcards")} style={{ padding: "28px 32px", borderRadius: 16, cursor: "pointer", background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)", textAlign: "left" }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>{"\u{1F0CF}"}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#f8fafc", marginBottom: 4 }}>Flashcards</div>
+          <div style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.5 }}>Flip through all 20 word pairs. See the blank, guess the letter, then tap to reveal.</div>
+        </button>
+        <button onClick={() => setMode("quiz")} style={{ padding: "28px 32px", borderRadius: 16, cursor: "pointer", background: "linear-gradient(145deg, #1e293b, #334155)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)", textAlign: "left" }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>{"\u270F\uFE0F"}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#f8fafc", marginBottom: 4 }}>Spelling Quiz</div>
+          <div style={{ fontSize: 14, color: "#94a3b8", lineHeight: 1.5 }}>20 questions, pick the silent letter from four choices. Track your score and streak.</div>
+        </button>
+      </div>
+      <div style={{ marginTop: 48, fontSize: 13, color: "#475569", textAlign: "center", fontFamily: "'Space Mono', monospace" }}>20 word pairs covering silent b, c, g, h, n, p, and t</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
